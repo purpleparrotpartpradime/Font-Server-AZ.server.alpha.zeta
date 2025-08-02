@@ -2,114 +2,172 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Alpha & Zeta Font Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js"></script>
+  <title>Font Translator (Alpha/Zeta)</title>
   <style>
     body {
-      background: #000;
-      color: #0cf;
+      background-color: #000;
+      color: #00bfff;
       font-family: sans-serif;
-      text-align: center;
-      padding: 2em;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      background-color: #111;
+      color: #0ff;
+      border: 1px solid #00bfff;
+      padding: 10px;
+      margin-bottom: 20px;
+      resize: none;
+    }
+    #font-buttons {
+      margin-bottom: 20px;
     }
     button {
-      background: #0cf;
+      background-color: #001f3f;
+      color: #0ff;
       border: none;
-      color: black;
-      font-size: 1.2em;
-      padding: 0.5em 1em;
-      margin: 1em;
+      padding: 10px;
+      margin: 5px;
       cursor: pointer;
+      border-radius: 8px;
+    }
+    button:hover {
+      background-color: #003f7f;
+    }
+    #outputText {
+      font-size: 1.5em;
+      padding: 20px;
+      border: 1px solid #00bfff;
+      min-height: 100px;
+      background-color: #111;
+      margin-bottom: 30px;
+    }
+    #fontList {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #00bfff;
+      border-radius: 10px;
+    }
+    .font-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #111;
+      border: 2px solid #00bfff;
+      border-radius: 50px;
+      padding: 15px 25px;
+      margin: 10px 0;
+    }
+    .font-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .download-button {
+      background-color: #444;
+      color: #00bfff;
+      border: none;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .download-button:hover {
+      background-color: #666;
     }
   </style>
 </head>
 <body>
-  <h1>Alpha & Zeta Font Generator</h1>
-  <button onclick="generateFont('Alpha')">Download Alpha Font (TTF)</button>
-  <button onclick="generateFont('Zeta')">Download Zeta Font (TTF)</button>
+  <h1>Font Translator (Alpha/Zeta)</h1>
+
+  <textarea id="inputText" placeholder="Enter your text here..."></textarea>
+  <div id="font-buttons">Loading fonts...</div>
+  <div id="outputText">Preview will appear here</div>
+
+  <h2>Available Fonts</h2>
+  <div id="fontList">Loading font list...</div>
 
   <script>
-    function drawGlyph(char, x, y, isLower, style) {
-      const path = new opentype.Path();
-      const size = isLower ? 40 : 70;
-      const offset = isLower ? 10 : 0;
+    const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
+    const fontButtons = document.getElementById('font-buttons');
+    const fontList = document.getElementById('fontList');
 
-      // Draw blocky outline
-      path.moveTo(x, y);
-      path.lineTo(x + size, y);
-      path.lineTo(x + size, y + size);
-      path.lineTo(x, y + size);
-      path.close();
+    const githubApiUrl = 'https://api.github.com/repos/purpleparrotpartpradime/Font-Server-AZ.server.alpha.zeta/contents/Fonts';
+    const rawBaseUrl = 'https://raw.githubusercontent.com/purpleparrotpartpradime/Font-Server-AZ.server.alpha.zeta/main/Fonts/';
 
-      // Draw stylized separators
-      if (style === 'Alpha') {
-        // Horizontal lines
-        path.moveTo(x, y + size / 3);
-        path.lineTo(x + size, y + size / 3);
-        path.moveTo(x, y + 2 * size / 3);
-        path.lineTo(x + size, y + 2 * size / 3);
-      } else if (style === 'Zeta') {
-        // Vertical lines
-        path.moveTo(x + size / 3, y);
-        path.lineTo(x + size / 3, y + size);
-        path.moveTo(x + 2 * size / 3, y);
-        path.lineTo(x + 2 * size / 3, y + size);
-      }
-
-      return path;
+    function loadFont(fontName, fontUrl) {
+      const newStyle = document.createElement('style');
+      newStyle.textContent = `
+        @font-face {
+          font-family: '${fontName}';
+          src: url('${fontUrl}');
+        }
+      `;
+      document.head.appendChild(newStyle);
     }
 
-    function generateFont(style) {
-      const glyphs = [];
-
-      const baseline = 0;
-      const x = 0;
-      const y = 0;
-
-      // Uppercase A-Z
-      for (let i = 65; i <= 90; i++) {
-        const char = String.fromCharCode(i);
-        const path = drawGlyph(char, x, y, false, style);
-        const glyph = new opentype.Glyph({
-          name: char,
-          unicode: i,
-          advanceWidth: 600,
-          path: path
-        });
-        glyphs.push(glyph);
-      }
-
-      // Lowercase a-z
-      for (let i = 97; i <= 122; i++) {
-        const char = String.fromCharCode(i);
-        const path = drawGlyph(char, x + 10, y + 10, true, style);
-        const glyph = new opentype.Glyph({
-          name: char,
-          unicode: i,
-          advanceWidth: 600,
-          path: path
-        });
-        glyphs.push(glyph);
-      }
-
-      const font = new opentype.Font({
-        familyName: style + 'Techno',
-        styleName: 'Regular',
-        unitsPerEm: 1000,
-        ascender: 800,
-        descender: -200,
-        glyphs: glyphs
-      });
-
-      const ttfData = font.toArrayBuffer();
-      const blob = new Blob([ttfData], { type: 'font/ttf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = style + '-Font.ttf';
-      a.click();
-      URL.revokeObjectURL(url);
+    function applyFont(fontName) {
+      outputText.style.fontFamily = `'${fontName}'`;
+      outputText.textContent = inputText.value;
     }
+
+    inputText.addEventListener('input', () => {
+      outputText.textContent = inputText.value;
+    });
+
+    async function loadFontList() {
+      try {
+        const response = await fetch(githubApiUrl);
+        const files = await response.json();
+
+        fontButtons.innerHTML = '';
+        fontList.innerHTML = '';
+
+        files.forEach(file => {
+          if (file.name.endsWith('.ttf')) {
+            const fontName = file.name.replace('.ttf', '');
+            const fontUrl = rawBaseUrl + file.name;
+
+            loadFont(fontName, fontUrl);
+
+            // Create selector button
+            const fontButton = document.createElement('button');
+            fontButton.textContent = fontName;
+            fontButton.addEventListener('click', () => applyFont(fontName));
+            fontButtons.appendChild(fontButton);
+
+            // Create font item in list
+            const fontItem = document.createElement('div');
+            fontItem.className = 'font-item';
+
+            const info = document.createElement('div');
+            info.className = 'font-info';
+            info.innerHTML = `
+              <strong>${file.name}</strong>
+              <small>${(file.size / 1024).toFixed(1)} KB</small>
+            `;
+
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = fontUrl;
+            downloadBtn.download = file.name;
+            downloadBtn.className = 'download-button';
+            downloadBtn.textContent = 'Download';
+
+            fontItem.appendChild(info);
+            fontItem.appendChild(downloadBtn);
+            fontList.appendChild(fontItem);
+          }
+        });
+      } catch (err) {
+        fontButtons.innerHTML = '⚠️ Failed to load fonts.';
+        fontList.innerHTML = '⚠️ Could not fetch font list.';
+        console.error(err);
+      }
+    }
+
+    loadFontList();
   </script>
 </body>
 </html>
