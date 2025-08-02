@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alpha & Zeta Font Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js"></script>
+  <style>
+    body {
+      background: #000;
+      color: #0cf;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+    button {
+      background: #0cf;
+      border: none;
+      color: black;
+      font-size: 1.2em;
+      padding: 0.5em 1em;
+      margin: 1em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Alpha & Zeta Font Generator</h1>
+  <button onclick="generateFont('Alpha')">Download Alpha Font (TTF)</button>
+  <button onclick="generateFont('Zeta')">Download Zeta Font (TTF)</button>
+
+  <script>
+    function drawGlyph(char, x, y, isLower, style) {
+      const path = new opentype.Path();
+      const size = isLower ? 40 : 70;
+      const offset = isLower ? 10 : 0;
+
+      // Draw blocky outline
+      path.moveTo(x, y);
+      path.lineTo(x + size, y);
+      path.lineTo(x + size, y + size);
+      path.lineTo(x, y + size);
+      path.close();
+
+      // Draw stylized separators
+      if (style === 'Alpha') {
+        // Horizontal lines
+        path.moveTo(x, y + size / 3);
+        path.lineTo(x + size, y + size / 3);
+        path.moveTo(x, y + 2 * size / 3);
+        path.lineTo(x + size, y + 2 * size / 3);
+      } else if (style === 'Zeta') {
+        // Vertical lines
+        path.moveTo(x + size / 3, y);
+        path.lineTo(x + size / 3, y + size);
+        path.moveTo(x + 2 * size / 3, y);
+        path.lineTo(x + 2 * size / 3, y + size);
+      }
+
+      return path;
+    }
+
+    function generateFont(style) {
+      const glyphs = [];
+
+      const baseline = 0;
+      const x = 0;
+      const y = 0;
+
+      // Uppercase A-Z
+      for (let i = 65; i <= 90; i++) {
+        const char = String.fromCharCode(i);
+        const path = drawGlyph(char, x, y, false, style);
+        const glyph = new opentype.Glyph({
+          name: char,
+          unicode: i,
+          advanceWidth: 600,
+          path: path
+        });
+        glyphs.push(glyph);
+      }
+
+      // Lowercase a-z
+      for (let i = 97; i <= 122; i++) {
+        const char = String.fromCharCode(i);
+        const path = drawGlyph(char, x + 10, y + 10, true, style);
+        const glyph = new opentype.Glyph({
+          name: char,
+          unicode: i,
+          advanceWidth: 600,
+          path: path
+        });
+        glyphs.push(glyph);
+      }
+
+      const font = new opentype.Font({
+        familyName: style + 'Techno',
+        styleName: 'Regular',
+        unitsPerEm: 1000,
+        ascender: 800,
+        descender: -200,
+        glyphs: glyphs
+      });
+
+      const ttfData = font.toArrayBuffer();
+      const blob = new Blob([ttfData], { type: 'font/ttf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = style + '-Font.ttf';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
